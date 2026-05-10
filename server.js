@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const routes = require("./routes/index");
+const errorHandler = require("./middlewares/errorHandler");
 
 const app = express();
 const server = require("http").createServer(app);
@@ -11,6 +12,8 @@ app.use(express.urlencoded({ limit: "100mb", extended: true }));
 app.use(cors());
 
 app.use("/api/v1/user", routes.user);
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5001;
 const ENV = process.env.NODE_ENV;

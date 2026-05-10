@@ -3,8 +3,12 @@
  * @route POST /api/v1/user/signup
  * @access Public
  */
-const signUp = async (req, res) => {
-  res.send("signUp");
+const signUp = async (req, res, next) => {
+  try {
+    res.send("signup");
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -12,8 +16,12 @@ const signUp = async (req, res) => {
  * @route POST /api/v1/user/login
  * @access Public
  */
-const login = async (req, res) => {
-  res.send("login");
+const login = async (req, res, next) => {
+  try {
+    res.send("login");
+  } catch (error) {
+    next(error);
+  }
 };
 
 module.exports = {
