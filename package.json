@@ -4,10 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test tests/*.test.js",
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "seed:development": "node seeders/seed-development.js"
+    "seed:development": "node seeders/seed-development.js",
+    "seed:calendar:development": "node seeders/seed-calendar-demo.js"
   },
   "keywords": [],
   "author": "",

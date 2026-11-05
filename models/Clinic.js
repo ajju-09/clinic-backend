@@ -96,6 +96,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(255),
         allowNull: true,
       },
+      timezone: {
+        type: DataTypes.STRING(64),
+        allowNull: false,
+        defaultValue: process.env.APP_DEFAULT_TIMEZONE || "Asia/Kolkata",
+      },
 
       // 6. Cover image
       cover_image_url: {
@@ -142,6 +147,14 @@ module.exports = (sequelize, DataTypes) => {
     Clinic.hasMany(models.PatientVisit, {
       foreignKey: "clinic_id",
       as: "visits",
+    });
+    Clinic.hasMany(models.CalendarEvent, {
+      foreignKey: "clinic_id",
+      as: "calendarEvents",
+    });
+    Clinic.hasMany(models.CalendarDayNote, {
+      foreignKey: "clinic_id",
+      as: "calendarDayNotes",
     });
   };
 

@@ -8,6 +8,9 @@ const createTransporter = () => {
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT) || 587,
       secure: Number(process.env.SMTP_PORT) === 465,
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 120000,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
@@ -29,6 +32,81 @@ const createTransporter = () => {
 };
 
 const transporter = createTransporter();
+
+const escapeHtml = (value) =>
+  String(value || "").replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  })[character]);
+
+exports.sendCalendarReminderEmail = async ({
+  recipientEmail,
+  doctorName,
+  title,
+  eventDate,
+  startTime,
+  endTime,
+  location,
+  description,
+  timezone,
+}) => {
+  const configured = process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS;
+  if (process.env.NODE_ENV === "production" && !configured) {
+    const error = new Error("Calendar email delivery is not configured.");
+    error.code = "SMTP_NOT_CONFIGURED";
+    throw error;
+  }
+  const from = process.env.SMTP_FROM || "MediPulse OS <no-reply@medipulse.local>";
+  const date = new Intl.DateTimeFormat("en", {
+    dateStyle: "long",
+    timeZone: "UTC",
+  }).format(new Date(`${eventDate}T12:00:00Z`));
+  const time = startTime
+    ? `${startTime}${endTime ? ` – ${endTime}` : ""}`
+    : "All day";
+  const greetingName = doctorName ? `Dr. ${doctorName}` : "Doctor";
+  const plainText = [
+    `Hello ${greetingName},`,
+    "",
+    "This is a reminder about your scheduled clinic event.",
+    "",
+    `Event: ${title}`,
+    `Date: ${date}`,
+    `Time: ${time}`,
+    location ? `Location: ${location}` : null,
+    description ? `Description: ${description}` : null,
+    "",
+    "— MediPulse OS",
+  ].filter((line) => line !== null).join("\n");
+  const safeLocation = location
+    ? `<p><strong>Location:</strong> ${escapeHtml(location)}</p>`
+    : "";
+  const safeDescription = description
+    ? `<p><strong>Description:</strong><br>${escapeHtml(description).replace(/\n/g, "<br>")}</p>`
+    : "";
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;padding:24px;color:#0f172a">
+      <h2 style="color:#0284c7">MediPulse OS event reminder</h2>
+      <p>Hello ${escapeHtml(greetingName)},</p>
+      <p>This is a reminder about your scheduled clinic event.</p>
+      <p><strong>Event:</strong> ${escapeHtml(title)}<br>
+      <strong>Date:</strong> ${escapeHtml(date)}<br>
+      <strong>Time:</strong> ${escapeHtml(time)}</p>
+      ${safeLocation}${safeDescription}
+      <p style="color:#64748b">— MediPulse OS</p>
+    </div>`;
+
+  await transporter.sendMail({
+    from,
+    to: recipientEmail,
+    subject: `Reminder: ${title} today`,
+    text: plainText,
+    html,
+  });
+};
 
 exports.sendOtpEmail = async (email, otp, expiresInMinutes = 5) => {
   const from = process.env.SMTP_FROM || "MediPulse OS <no-reply@medipulse.local>";

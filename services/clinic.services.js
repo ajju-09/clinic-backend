@@ -21,6 +21,7 @@ const clinicAttributes = [
     "website",
     "registration_no",
     "working_hours",
+    "timezone",
     "specialties",
     "cover_image_url",
     "created_at",
@@ -46,6 +47,7 @@ const toClinicResponse = (clinic) => {
         website: record.website,
         registrationNo: record.registration_no,
         workingHours: record.working_hours,
+        timezone: record.timezone || process.env.APP_DEFAULT_TIMEZONE || "Asia/Kolkata",
         specialties: record.specialties || [],
         coverImageUrl: record.cover_image_url,
         createdAt: record.created_at,
@@ -87,6 +89,7 @@ const toDatabaseFields = (data) => {
     if (Object.hasOwn(data, "workingHours")) {
         fields.working_hours = data.workingHours || null;
     }
+    if (Object.hasOwn(data, "timezone")) fields.timezone = data.timezone;
     if (Object.hasOwn(data, "specialties")) {
         fields.specialties = normalizeSpecialties(data.specialties);
     }

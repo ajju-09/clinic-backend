@@ -34,6 +34,18 @@ const emailRule = Joi.string()
   .email({ tlds: { allow: true } });
 
 const nameRule = Joi.string().trim().min(1).max(50);
+const timezoneRule = Joi.string()
+  .trim()
+  .max(64)
+  .custom((value, helpers) => {
+    try {
+      new Intl.DateTimeFormat("en", { timeZone: value });
+      return value;
+    } catch {
+      return helpers.error("any.invalid");
+    }
+  })
+  .messages({ "any.invalid": "Timezone must be a valid IANA timezone." });
 
 const otpRule = Joi.string().trim().length(6).pattern(/^\d{6}$/).messages({
   "string.length": "OTP must be exactly 6 digits",
@@ -118,6 +130,7 @@ const clinicFields = {
   website: Joi.string().trim().uri({ scheme: ["http", "https"] }).max(255).allow(null, ""),
   registrationNo: Joi.string().trim().max(100).allow(null, ""),
   workingHours: Joi.string().trim().max(255).allow(null, ""),
+  timezone: timezoneRule,
   specialties: Joi.array()
     .items(Joi.string().trim().min(1).max(100))
     .max(50)

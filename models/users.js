@@ -135,6 +135,14 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: "doctor_id",
       as: "prescriptions",
     });
+    User.hasMany(models.CalendarEvent, {
+      foreignKey: "doctor_user_id",
+      as: "calendarEvents",
+    });
+    User.hasMany(models.CalendarDayNote, {
+      foreignKey: "doctor_user_id",
+      as: "calendarDayNotes",
+    });
   };
 
   return User;
